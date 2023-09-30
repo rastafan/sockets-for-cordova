@@ -1,6 +1,6 @@
 sockets-for-cordova
 ===================
-This Cordova plugin provides JavaScript API, that allows you to communicate with server through TCP protocol. It is working with Capacitor 3. It is based on the blochop's cordova plugin https://github.com/blocshop/sockets-for-cordova
+This Cordova plugin provides JavaScript API, that allows you to communicate with server through TCP protocol. It is working with Capacitor 3. It is based on the blochop's cordova plugin https://github.com/blocshop/sockets-for-cordova and a fork of https://github.com/vendus/sockets-for-cordova
 
 Currently we support these platforms: iOS, Android, WP8.
 
@@ -9,14 +9,14 @@ Currently we support these platforms: iOS, Android, WP8.
 
 Install this plugin simply by:
 
-`npm i @vendus/sockets-for-cordova --save`
+`npm i @rastafan/sockets-for-cordova --save`
 
 ## Sample usage
 Here is simple example of how to connect to remote server, consume data from it and close the connection. This example uses React with TypeScript.
 
 Import the package:
 ```
-import Socket from '@vendus/sockets-for-cordova';
+import Socket from '@rastafan/sockets-for-cordova';
 ```
 
 Create instance of Socket type:

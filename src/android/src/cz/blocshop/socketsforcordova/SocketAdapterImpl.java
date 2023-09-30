@@ -22,23 +22,21 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.Arrays;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-
 
 public class SocketAdapterImpl implements SocketAdapter {
-    
+
     private final int INPUT_STREAM_BUFFER_SIZE = 16 * 1024;
     private final Socket socket;
-    
+
     private Consumer<Void> openEventHandler;
     private Consumer<String> openErrorEventHandler;
     private Consumer<byte[]> dataConsumer;
     private Consumer<Boolean> closeEventHandler;
     private Consumer<String> errorEventHandler;
-    
+
     private ExecutorService executor;
 
     public SocketAdapterImpl() {
@@ -52,32 +50,57 @@ public class SocketAdapterImpl implements SocketAdapter {
             @Override
             public void run() {
                 try {
-                    socket.setSoTimeout(5000);
-					socket.connect(new InetSocketAddress(host, port), 5000);
-					invokeOpenEventHandler();
-					submitReadTask();
-				} catch (IOException e) {
-					Logging.Error(SocketAdapterImpl.class.getName(), "Error during connecting of socket", e.getCause());
-					invokeOpenErrorEventHandler(e.getMessage());
-				}
+                    socket.setSoTimeout(10000);
+                    socket.connect(new InetSocketAddress(host, port), 5000);
+                    invokeOpenEventHandler();
+                    submitReadTask();
+                } catch (IOException e) {
+                    Logging.Error(SocketAdapterImpl.class.getName(), "Error during connecting of socket", e.getCause());
+                    invokeOpenErrorEventHandler(e.getMessage());
+                }
             }
         });
     }
-    
+
     @Override
     public void write(byte[] data) throws IOException {
-        this.socket.getOutputStream().write(data);
+        this.executor.submit(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    socket.getOutputStream().write(data);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+        /* Executor executor = new Executor() {
+            @Override
+            public void execute(Runnable command) {
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            socket.getOutputStream().write(data);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+                thread.start();
+            }
+        }; */
     }
 
     @Override
     public void shutdownWrite() throws IOException {
-    	this.socket.shutdownOutput();
+        this.socket.shutdownOutput();
     }
-    
+
     @Override
     public void close() throws IOException {
-    	this.socket.close();
-    	this.invokeCloseEventHandler(false);
+        this.socket.close();
+        this.invokeCloseEventHandler(false);
     }
 
     @Override
@@ -104,17 +127,17 @@ public class SocketAdapterImpl implements SocketAdapter {
             this.socket.setTrafficClass(options.getTrafficClass());
         }
     }
-    
-	@Override
-	public void setOpenEventHandler(Consumer<Void> openEventHandler) {
-		this.openEventHandler = openEventHandler;
-	}
 
-	@Override
-	public void setOpenErrorEventHandler(Consumer<String> openErrorEventHandler) {
-		this.openErrorEventHandler = openErrorEventHandler;
-	}
-    
+    @Override
+    public void setOpenEventHandler(Consumer<Void> openEventHandler) {
+        this.openEventHandler = openEventHandler;
+    }
+
+    @Override
+    public void setOpenErrorEventHandler(Consumer<String> openErrorEventHandler) {
+        this.openErrorEventHandler = openErrorEventHandler;
+    }
+
     @Override
     public void setDataConsumer(Consumer<byte[]> dataConsumer) {
         this.dataConsumer = dataConsumer;
@@ -138,63 +161,63 @@ public class SocketAdapterImpl implements SocketAdapter {
             }
         });
     }
-    
+
     private void runRead() {
         boolean hasError = false;
         try {
-        	runReadLoop();
+            runReadLoop();
         } catch (Throwable e) {
-        	Logging.Error(SocketAdapterImpl.class.getName(), "Error during reading of socket input stream", e);
+            Logging.Error(SocketAdapterImpl.class.getName(), "Error during reading of socket input stream", e);
             hasError = true;
             invokeExceptionHandler(e.getMessage());
         } finally {
             try {
                 socket.close();
             } catch (IOException e) {
-            	Logging.Error(SocketAdapterImpl.class.getName(), "Error during closing of socket", e);
+                Logging.Error(SocketAdapterImpl.class.getName(), "Error during closing of socket", e);
             } finally {
                 invokeCloseEventHandler(hasError);
             }
         }
-    }    
-    
+    }
+
     private void runReadLoop() throws IOException {
         byte[] buffer = new byte[INPUT_STREAM_BUFFER_SIZE];
         int bytesRead = 0;
-        
+
         while ((bytesRead = socket.getInputStream().read(buffer)) >= 0) {
-        	byte[] data = buffer.length == bytesRead 
-        			? buffer
-        			: Arrays.copyOfRange(buffer, 0, bytesRead);
-        	
+            byte[] data = buffer.length == bytesRead
+                    ? buffer
+                    : Arrays.copyOfRange(buffer, 0, bytesRead);
+
             this.invokeDataConsumer(data);
         }
     }
 
     private void invokeOpenEventHandler() {
         if (this.openEventHandler != null) {
-            this.openEventHandler.accept((Void)null);
+            this.openEventHandler.accept((Void) null);
         }
     }
-    
+
     private void invokeOpenErrorEventHandler(String errorMessage) {
         if (this.openErrorEventHandler != null) {
             this.openErrorEventHandler.accept(errorMessage);
         }
     }
-    
+
     private void invokeDataConsumer(byte[] data) {
         if (this.dataConsumer != null) {
             this.dataConsumer.accept(data);
         }
     }
-    
+
     private void invokeCloseEventHandler(boolean hasError) {
         if (this.closeEventHandler != null) {
             this.closeEventHandler.accept(hasError);
         }
     }
-    
+
     private void invokeExceptionHandler(String errorMessage) {
         if (this.errorEventHandler != null) {
             this.errorEventHandler.accept(errorMessage);
