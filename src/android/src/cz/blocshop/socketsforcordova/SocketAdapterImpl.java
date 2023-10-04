@@ -41,7 +41,7 @@ public class SocketAdapterImpl implements SocketAdapter {
 
     public SocketAdapterImpl() {
         this.socket = new Socket();
-        this.executor = Executors.newSingleThreadExecutor();
+        this.executor = Executors.newCachedThreadPool();
     }
 
     @Override
@@ -74,22 +74,6 @@ public class SocketAdapterImpl implements SocketAdapter {
                 }
             }
         });
-        /* Executor executor = new Executor() {
-            @Override
-            public void execute(Runnable command) {
-                Thread thread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            socket.getOutputStream().write(data);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                });
-                thread.start();
-            }
-        }; */
     }
 
     @Override
