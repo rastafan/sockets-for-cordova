@@ -30,6 +30,7 @@
 }
 
 - (void)open:(NSString *)host port:(NSNumber*)port;
+- (void)open:(NSString *)host port:(NSNumber*)port openTimeout:(int)openTimeout readTimeout:(int)readTimeout;
 - (void)write:(NSArray *)dataArray;
 - (void)shutdownWrite;
 - (void)close;

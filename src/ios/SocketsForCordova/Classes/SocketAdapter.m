@@ -39,7 +39,12 @@ int writeTimeoutSeconds = 5.0;
 
 @implementation SocketAdapter
 
-- (void)open:(NSString *)host port:(NSNumber*)port openTimeout:(NSNumber*)openTimeout readTimeout:(NSNumber*)readTimeout{
+- (void)open:(NSString *)host port:(NSNumber *)port {
+    // [open host:host port:port openTimeout:0 readTimeout:0];
+    [self open:host port:port openTimeout:0 readTimeout:0];
+}
+
+- (void)open:(NSString *)host port:(NSNumber*)port openTimeout:(int)openTimeout readTimeout:(int)readTimeout{
 
     CFReadStreamRef readStream2;
     CFWriteStreamRef writeStream2;
@@ -76,7 +81,7 @@ int writeTimeoutSeconds = 5.0;
 }
 
 -(void)onOpenTimeout:(NSTimer *)timer {
-    NSLog(@"[NATIVE] Open timeout: %d", openTimeout);
+    NSLog(@"[NATIVE] Open timeout");
     //self.errorEventHandler(@"Socket open timeout", @"openTimeout");
     self.openErrorEventHandler(@"Socket open timeout", 0);
     openTimer = nil;
@@ -84,7 +89,7 @@ int writeTimeoutSeconds = 5.0;
 }
 
 -(void)onWriteTimeout:(NSTimer *)timer {
-    NSLog(@"[NATIVE] Write timeout: %d", writeTimeoutSeconds);
+    NSLog(@"[NATIVE] Write timeout");
     self.errorEventHandler(@"Socket write timeout", @"writeTimeout", 0);
     writeTimer = nil;
 }
@@ -286,5 +291,7 @@ int writeTimeoutSeconds = 5.0;
         NSLog(@"[NATIVE] openTimer invalidate on close");
     }
 }
+
+
 
 @end
