@@ -63,6 +63,9 @@ public class SocketPlugin extends CordovaPlugin {
         String host = args.getString(1);
         int port = args.getInt(2);
 
+        int openTimeout = args.optInt(4);
+        int readTimeout = args.optInt(5);
+
         Log.d("SocketPlugin", "Open socket plugin");
 
         SocketAdapter socketAdapter = new SocketAdapterImpl();
@@ -91,7 +94,7 @@ public class SocketPlugin extends CordovaPlugin {
         socketAdapters.put(socketKey, socketAdapter);
         socketAdaptersPorts.put(portString, socketKey);
 
-        socketAdapter.open(host, port);
+        socketAdapter.open(host, port, openTimeout, readTimeout);
     }
 
     private void write(CordovaArgs args, CallbackContext callbackContext) throws JSONException {

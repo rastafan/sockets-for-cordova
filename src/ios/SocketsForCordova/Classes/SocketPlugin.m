@@ -28,6 +28,9 @@
     NSString *host = [command.arguments objectAtIndex:1];
     NSNumber *port = [command.arguments objectAtIndex:2];
 
+    NSNumber *openTimeout = [command.arguments objectAtIndex:3]/1000;
+    NSNumber *readTimeout = [command.arguments objectAtIndex:4]/1000;
+
     NSLog(@"[NATIVE] OPEN socket for port: %@", port);
 
     if (socketAdapters == nil) {
@@ -97,7 +100,7 @@
 
     [self.commandDelegate runInBackground:^{
         @try {
-            [socketAdapter open:host port:port];
+            [socketAdapter open:host port:port, openTimeout:openTimeout, readTimeout:readTimeout];
         }
         @catch (NSException *e) {
             [self.commandDelegate

@@ -46,12 +46,16 @@ public class SocketAdapterImpl implements SocketAdapter {
 
     @Override
     public void open(final String host, final int port) {
+        this.open(host, port, 0, 0);
+    }
+
+    public void open(final String host, final int port, final int openTimeout, final int readTimeout) {
         this.executor.submit(new Runnable() {
             @Override
             public void run() {
                 try {
-                    socket.setSoTimeout(10000);
-                    socket.connect(new InetSocketAddress(host, port), 5000);
+                    socket.setSoTimeout(readTimeout);
+                    socket.connect(new InetSocketAddress(host, port), openTimeout);
                     invokeOpenEventHandler();
                     submitReadTask();
                 } catch (IOException e) {

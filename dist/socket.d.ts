@@ -6,7 +6,7 @@ declare class Socket {
     onClose: any;
     onError: any;
     socketKey: string;
-    open(host: any, port: any, success: any, error: any): void;
+    open(host: any, port: any, openTimeout: number, readTimeout: number, success: any, error: any): void;
     write(data: any, success: any, error: any): void;
     shutdownWrite(success: any, error: any): void;
     close(success: any, error: any): void;

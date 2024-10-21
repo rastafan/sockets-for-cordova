@@ -40,7 +40,7 @@ function Socket() {
     this.socketKey = guid();
 }
 
-Socket.prototype.open = function (host, port, success, error) {
+Socket.prototype.open = function (host, port, openTimeout, readTimeout, success, error) {
 
     success = success || function () {
         };
@@ -96,7 +96,9 @@ Socket.prototype.open = function (host, port, success, error) {
         [
             this.socketKey,
             host,
-            port
+            port,
+            (openTimeout || 5000),
+            (readTimeout || 10000)
         ]);
 };
 
